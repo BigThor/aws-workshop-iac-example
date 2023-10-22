@@ -1,0 +1,46 @@
+Resources:
+  S3BucketForWebsite:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+      OwnershipControls:
+          Rules:
+          - ObjectOwnership: ObjectWriter
+      BucketName: static-web-something # change this
+      MetricsConfigurations:
+        - Id: EntireBucket
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+    # DeletionPolicy: Retain
+  S3BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref S3BucketForWebsite
+      PolicyDocument : 
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:GetObject'
+            Resource:
+              - !Sub arn:aws:s3:::${S3BucketForWebsite}/*
+
+Outputs:
+  WebsiteURL:
+    Value: !GetAtt
+      - S3BucketForWebsite
+      - WebsiteURL
+    Description: URL for website hosted on S3
+  S3BucketName:
+    Value: !Ref S3BucketForWebsite
+    Description: Name of S3 bucket
+  S3BucketSecureURL:
+    Value: !Join
+      - ''
+      - - 'https://'
+        - !GetAtt
+          - S3BucketForWebsite
+          - DomainName
+    Description: Name of S3 bucket to hold website content
